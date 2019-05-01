@@ -1,7 +1,7 @@
 #include "qpc.h"
 #include "esp_log.h"
 #include "driver/uart.h"
-#include "rotimaticPriorityList.h"
+#include "priorityList.h"
 
 #ifdef Q_SPY
 static uint8_t qsTxBuf[CONFIG_QPC_QSPY_TX_SIZE];

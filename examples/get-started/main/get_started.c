@@ -7,8 +7,8 @@
 #ifdef Q_SPY
 #include "qs.h"
 #endif /** Q_SPY */
-#include "RotimaticSignalList.h"
-#include "motor.h"
+#include "signalList.h"
+#include "test.h"
 
 /*
  * small size pool.
@@ -41,7 +41,6 @@ static QSubscrList subscrSto[MAX_PUB_SIG];
 
 void app_main()
 {
-    printf("Hello from Zimplistic!\n");
     printf("Hello from app_main()\n");
 
     /* Print chip information */
@@ -59,6 +58,11 @@ void app_main()
 
     /* Initialize the framework */
     QF_init();
+
+#ifdef Q_SPY
+    QS_INIT((void*)0);
+#endif /* Q_SPY */
+
     /* Initialize Event Pool
      * Note: QF can manage up to three event pools (e.g., small, medium, and large events).
      * An application may call this function up to three times to initialize up to three event
@@ -71,12 +75,8 @@ void app_main()
     /* Initialize Publish-Subscribe */
     QF_psInit(subscrSto, Q_DIM(subscrSto));
 
-#ifdef Q_SPY
-    QS_INIT((void*)0);
-#endif /* Q_SPY */
-
     /* Call Active Object Constructors */
-    MOTOR_ctor();
+    TEST_ctor();
 
     /* Run QF */
     QF_run();

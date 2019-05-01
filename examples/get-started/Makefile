@@ -4,5 +4,6 @@
 #
 
 PROJECT_NAME := $(notdir $(shell pwd))
+CFLAGS += -DQ_SPY
 
 include $(ESP_QPC_PATH)/project.mk

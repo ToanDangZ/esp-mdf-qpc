@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package name="test" stereotype="0x02">
+ <class name="test" superclass="qpc::QActive">
+  <attribute name="tickTimeEvt" type="QTimeEvt" visibility="0x00" properties="0x00"/>
+  <statechart properties="0x00">
+   <initial target="../1">
+    <action>/* Arm Timer for periodic generation of events */
+QTimeEvt_armX(&amp;me-&gt;tickTimeEvt, TEST_TICK_INTERVAL_MS, TEST_TICK_INTERVAL_MS);</action>
+    <initial_glyph conn="14,10,5,0,12,4">
+     <action box="0,-2,10,2"/>
+    </initial_glyph>
+   </initial>
+   <state name="TOP">
+    <tran trig="TICK">
+     <action>/* Test */
+uint8_t cpuId = xPortGetCoreID();
+#if 0
+QS_BEGIN(QS_USER0, &amp;me-&gt;super);
+    QS_U8(1, cpuId);
+    QS_STR(&quot;AO_test: Tick Event&quot;);
+QS_END();
+#else
+printf(&quot;CPU%d: AO_test Tick Event\n&quot;, cpuId);
+#endif</action>
+     <tran_glyph conn="8,22,3,-1,13">
+      <action box="0,-2,10,2"/>
+     </tran_glyph>
+    </tran>
+    <state_glyph node="8,14,45,30"/>
+   </state>
+   <state_diagram size="80,50"/>
+  </statechart>
+ </class>
+ <attribute name="AO_test" type="QActive * const" visibility="0x00" properties="0x00"/>
+ <operation name="TEST_ctor" type="void" visibility="0x00" properties="0x00">
+  <code>static uint8_t bInitDone = (uint8_t)0;
+char taskName[16];
+test *me;
+
+if(bInitDone == (uint8_t)0) {
+    me = &amp;l_test;
+    /* Call constructor */
+    QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;test_initial));
+    /* Call orthogonal Component constructor */
+
+    /* Call Timer Constructor */
+    QTimeEvt_ctorX(&amp;me-&gt;tickTimeEvt, &amp;me-&gt;super, TICK_SIG, 0U);
+
+    /* Initialize members */
+
+    /* Start active object */
+    sprintf(taskName, &quot;AO_test&quot;);
+    QActive_setAttr(AO_test, TASK_NAME_ATTR, taskName);
+    QACTIVE_START(
+        AO_test,
+        PRIORITY_TEST,
+        l_testQSto,
+        Q_DIM(l_testQSto),
+        testStack,
+        sizeof(testStack),
+        (QEvt *)0);
+
+    bInitDone = (uint8_t)1;
+}</code>
+ </operation>
+ <directory name=".">
+  <file name="test.h">
+   <text>#ifndef TEST_H
+#define TEST_H
+
+#define TEST_TICK_INTERVAL_MS        (1000)
+
+/* opaque pointers to active objects */
+$declare(components::test::AO_test)
+
+$declare(components::test::TEST_ctor)
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus*/
+
+#endif /* TEST_H */</text>
+  </file>
+  <file name="test.c">
+   <text>#include &quot;qpc.h&quot;
+#include &quot;signalList.h&quot;
+#include &quot;priorityList.h&quot;
+#include &quot;test.h&quot;
+
+Q_DEFINE_THIS_FILE
+
+$declare(components::test::test)
+
+/* Local Object */
+static test l_test;
+/* FreeRTOS stack for AO */
+static StackType_t testStack[1024];
+/* AO Queue */
+QEvt const * l_testQSto[64];
+/* Global Oject: opaque pointer to test AO */
+QActive * const AO_test = &amp;l_test.super;
+
+$define(components::test::TEST_ctor)
+
+$define(components::test::test)</text>
+  </file>
+ </directory>
+</package>
