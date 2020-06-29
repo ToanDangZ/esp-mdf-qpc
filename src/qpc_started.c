@@ -1,14 +1,8 @@
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_system.h"
-#include "esp_spi_flash.h"
-#include "qpc.h"
-#ifdef Q_SPY
-#include "qs.h"
-#endif /** Q_SPY */
-#include "signalList.h"
-#include "test.h"
+#include "esp-mdf-qpc/qpc_started.h"
+
+/*Include submodules*/
+#include "app/test/test.h"
+#include "app/signalList.h"
 
 /*
  * small size pool.
@@ -39,23 +33,8 @@ static QF_MPOOL_EL(largePool) largePoolSto[CONFIG_QPC_LARGE_POOL_SIZE];
  */
 static QSubscrList subscrSto[MAX_PUB_SIG];
 
-void app_main()
+void qpc_ini()
 {
-    printf("Hello from app_main()\n");
-
-    /* Print chip information */
-    esp_chip_info_t chip_info;
-    esp_chip_info(&chip_info);
-    printf("This is ESP32 chip with %d CPU cores, WiFi%s%s, ",
-            chip_info.cores,
-            (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
-            (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
-
-    printf("silicon revision %d, ", chip_info.revision);
-
-    printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
-            (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
-
     /* Initialize the framework */
     QF_init();
 
@@ -80,7 +59,5 @@ void app_main()
 
     /* Run QF */
     QF_run();
-
-    printf("Goodbye app_main()\n");
 }
 

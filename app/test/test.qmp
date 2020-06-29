@@ -2,7 +2,7 @@
 <package name="test" stereotype="0x02">
  <class name="test" superclass="qpc::QActive">
   <attribute name="tickTimeEvt" type="QTimeEvt" visibility="0x00" properties="0x00"/>
-  <statechart properties="0x00">
+  <statechart properties="0x01">
    <initial target="../1">
     <action>/* Arm Timer for periodic generation of events */
 QTimeEvt_armX(&amp;me-&gt;tickTimeEvt, TEST_TICK_INTERVAL_MS, TEST_TICK_INTERVAL_MS);</action>
