@@ -1,7 +1,0 @@
-[submodule "components/qpc"]
-	path = components/qpc
-	url = https://github.com/sicrisembay/qpc.git
-	branch = esp32_support
-[submodule "esp-mdf"]
-	path = esp-mdf
-	url = https://github.com/espressif/esp-mdf.git
