@@ -1,7 +1,7 @@
 #include "esp-mdf-qpc/qpc_started.h"
 
 /*Include submodules*/
-#include "app/test/test.h"
+#include "app/components/test/test.h"
 #include "app/signalList.h"
 
 /*
