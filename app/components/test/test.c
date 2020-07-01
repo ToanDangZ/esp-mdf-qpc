@@ -104,14 +104,30 @@ static QState test_TOP(test * const me, QEvt const * const e) {
         case TICK_SIG: {
             /* Test */
             uint8_t cpuId = xPortGetCoreID();
+
             #if 0
             QS_BEGIN(QS_USER0, &me->super);
                 QS_U8(1, cpuId);
                 QS_STR("AO_test: Tick Event");
             QS_END();
             #else
+
             printf("CPU%d: AO_test Tick Event\n", cpuId);
             #endif
+            status_ = Q_HANDLED();
+            break;
+        }
+        /*${components::test::test::SM::TOP::TEST} */
+        case TEST_SIG: {
+            /* Test */
+            uint8_t cpuId = xPortGetCoreID();
+
+            QS_BEGIN(QS_USER0, &me->super);
+                QS_U8(1, cpuId);
+                QS_STR("AO_test: TEST Sig Recv");
+            QS_END();
+
+            printf("CPU%d: TEST Sig Recv\n", cpuId);
             status_ = Q_HANDLED();
             break;
         }

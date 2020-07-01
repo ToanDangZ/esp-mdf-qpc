@@ -14,15 +14,31 @@ QTimeEvt_armX(&amp;me-&gt;tickTimeEvt, TEST_TICK_INTERVAL_MS, TEST_TICK_INTERVAL
     <tran trig="TICK">
      <action>/* Test */
 uint8_t cpuId = xPortGetCoreID();
+
 #if 0
 QS_BEGIN(QS_USER0, &amp;me-&gt;super);
     QS_U8(1, cpuId);
     QS_STR(&quot;AO_test: Tick Event&quot;);
 QS_END();
 #else
+
 printf(&quot;CPU%d: AO_test Tick Event\n&quot;, cpuId);
 #endif</action>
      <tran_glyph conn="8,22,3,-1,13">
+      <action box="0,-2,10,2"/>
+     </tran_glyph>
+    </tran>
+    <tran trig="TEST">
+     <action>/* Test */
+uint8_t cpuId = xPortGetCoreID();
+
+QS_BEGIN(QS_USER0, &amp;me-&gt;super);
+    QS_U8(1, cpuId);
+    QS_STR(&quot;AO_test: TEST Sig Recv&quot;);
+QS_END();
+
+printf(&quot;CPU%d: TEST Sig Recv\n&quot;, cpuId);</action>
+     <tran_glyph conn="8,28,3,-1,13">
       <action box="0,-2,10,2"/>
      </tran_glyph>
     </tran>

@@ -13,6 +13,7 @@ enum testSignal {
     // Events/Signals that are published **************************************
     /* Published Sensor Signals */
     TEST_READY_SIG = Q_USER_SIG,
+    TEST_SIG,
 
     MAX_PUB_SIG,                            // last published signal
 
@@ -33,8 +34,7 @@ enum testSignal {
 #define PRIORITY_LIST_H
 
 enum task_priority {
-    PRIORITY_QSPY_TX = tskIDLE_PRIORITY + 1,
-    PRIORITY_QSPY_RX,
+    PRIORITY_QSPY = tskIDLE_PRIORITY + 1,
     PRIORITY_TEST,
 
     PRIORITY_MAX
