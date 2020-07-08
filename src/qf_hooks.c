@@ -9,7 +9,15 @@
 #elif defined(CONFIG_QPC_QSPY_PHY_UART)
 #include "driver/uart.h"
 #endif
+#if defined(CONFIG_QPC_QSPY_PHY_WIFI)
+#include "string.h"
+#include "sys/status.h" /*Whitecat library*/
+#include "socket.h"
+#include "udp.h"
+#include "inet.h"
+#endif
 
+#define Q_SPY
 
 #ifdef Q_SPY
 static uint8_t qsTxBuf[CONFIG_QPC_QSPY_TX_SIZE];
@@ -23,6 +31,12 @@ static const char *QSPY_TAG = "qspy";
 
 #if defined(CONFIG_QPC_QSPY_PHY_UART)
 #define RX_BUF_SIZE (1024)
+#endif
+
+#if defined(CONFIG_QPC_QSPY_PHY_WIFI)
+#define QSPY_UDP_PORT "777"
+#define QSPY_UDP_ADDR "*"
+#define QSPY_UDP_TIMEOUT	(3.0) /*FIXME: timeout doesn't work, pooling is using*/
 #endif
 
 void QF_onStartup(void)
@@ -70,6 +84,29 @@ static void _QSpyTask(void *pxParam)
     uart_param_config(UART_NUM_1, &uart_config);
     uart_set_pin(UART_NUM_1, CONFIG_QPC_QSPY_TX_PIN, CONFIG_QPC_QSPY_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     uart_driver_install(UART_NUM_1, RX_BUF_SIZE * 2, 0, 0, NULL, 0);
+#elif defined(CONFIG_QPC_QSPY_PHY_WIFI)
+    struct sockaddr_storage addr;
+    socklen_t addr_len = sizeof(addr);
+    p_timeout tm;
+    int err;
+    size_t got;
+    char addrstr[INET6_ADDRSTRLEN];
+    char portstr[6];
+    p_udp udp = malloc(sizeof(t_udp));
+
+    if (udp == NULL)
+    {
+    	panic("Failed to allocate udp socket");
+    }
+    udp->sock = SOCKET_INVALID;
+    timeout_init(&udp->tm, -1, -1);
+    udp->family = AF_UNSPEC;
+
+    pRxData = (uint8_t *)malloc(UDP_DATAGRAMSIZE);
+    if (pRxData == NULL)
+    {
+    	panic("Failed to allocate pRxData");
+    }
 #endif
 
     ESP_LOGI(QSPY_TAG, "QSpy Task is up.");
@@ -116,6 +153,112 @@ static void _QSpyTask(void *pxParam)
 
         if(pktSize > 0) {
             uart_write_bytes(UART_NUM_1, (char *)pBlock, pktSize);
+        }
+#elif defined(CONFIG_QPC_QSPY_PHY_WIFI)
+        /*Open the connection only when the wifi is connected*/
+        if (!NETWORK_AVAILABLE())
+        {
+        	ESP_LOGD(QSPY_TAG, "Wifi is connecting");
+        	continue;
+        }
+        /*Open socket to receive data*/
+        if (udp->family == AF_UNSPEC && udp->sock == SOCKET_INVALID) {
+        	const char *inet_err = inet_trycreate(&udp->sock, AF_INET, SOCK_DGRAM, 0);
+        	if (inet_err != NULL)
+        	{
+        		ESP_LOGE(QSPY_TAG, "%s", inet_err);
+        		panic("inet_trycreate failed");
+        	}
+        	socket_setnonblocking(&udp->sock);
+        	udp->family = AF_INET; /*IP4*/
+        	udp->tm.block = QSPY_UDP_TIMEOUT;
+        	//udp->tm.total = QSPY_UDP_TIMEOUT;
+
+        	/*Binding to address, port*/
+        	const char *port = QSPY_UDP_PORT;
+        	struct addrinfo bindhints;
+        	memset(&bindhints, 0, sizeof(bindhints));
+        	bindhints.ai_socktype = SOCK_DGRAM;
+        	bindhints.ai_family = udp->family;
+        	bindhints.ai_flags = AI_PASSIVE;
+        	inet_err = inet_trybind(&udp->sock,
+        			&udp->family,
+					QSPY_UDP_ADDR,
+					port,
+					&bindhints);
+        	if (err) {
+        		ESP_LOGE(QSPY_TAG, "%s", inet_err);
+        		panic("inet_trybind failed");
+        	}
+        }
+
+        /*Receiving data*/
+        memset(pRxData, 0, UDP_DATAGRAMSIZE);
+        tm = &udp->tm;
+        timeout_markstart(tm);
+        err = socket_recvfrom(&udp->sock,
+        		(char *)pRxData,
+				UDP_DATAGRAMSIZE,
+				&got,
+				(SA *)&addr,
+				&addr_len,
+				tm);
+        if (err != IO_DONE && err != IO_CLOSED)
+        {
+        	if (err == IO_CLOSED)
+        	{
+        		ESP_LOGE(QSPY_TAG, "refused");
+        	}
+        	/*FIXME: timeout error occurs every cycle*/
+        	else if (err != IO_TIMEOUT)
+        	{
+        		ESP_LOGE( QSPY_TAG, "%s", socket_strerror(err) );
+        	}
+
+        }else
+        {
+        	err = getnameinfo((struct sockaddr *) &addr,
+        			addr_len,
+					addrstr,
+					INET6_ADDRSTRLEN,
+					portstr,
+					6,
+					NI_NUMERICHOST | NI_NUMERICSERV);
+        	if (err)
+        	{
+        		ESP_LOGE( QSPY_TAG, "%s", gai_strerror(err));
+        	}else
+        	{
+        		ESP_LOGI(QSPY_TAG, "sender addr: %s, %s", addrstr, portstr);
+        	}
+
+        	/*Send echo message*/
+        	size_t sent = 0;
+        	if (got > 0)
+        	{
+        		timeout_markstart(tm);
+        		err = socket_sendto(&udp->sock,
+        		        			(char *)pRxData,
+        							got,
+									&sent,
+									(SA *) &addr,
+									addr_len,
+									tm);
+        		if (err != IO_DONE)
+        		{
+                	if (err == IO_CLOSED)
+                	{
+                		ESP_LOGE(QSPY_TAG, "sending refused");
+                	}
+                	/*FIXME: timeout error occurs every cycle*/
+                	else if (err != IO_TIMEOUT)
+                	{
+                		ESP_LOGE( QSPY_TAG, "sending %s", socket_strerror(err) );
+                	}
+
+        		}
+        	}
+
         }
 #else
 #error "QSpy only support BT for this motor board"

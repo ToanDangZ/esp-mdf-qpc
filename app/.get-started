@@ -10,10 +10,10 @@
  </group>
  <group name="windows">
   <item id="components::test::.::test.h">0,0,596,300</item>
-  <item id="components::test::test::SM">228,88,640,480</item>
-  <item id="components::test::.::test.c">0,268,596,300</item>
-  <item id=".::signalList.h">272,0,596,300</item>
-  <item id=".::priorityList.h">0,0,1181,568,*</item>
+  <item id="components::test::test::SM">541,121,640,480</item>
+  <item id="components::test::.::test.c">0,300,596,300</item>
+  <item id=".::signalList.h">585,0,596,300</item>
+  <item id=".::priorityList.h">0,0,1152,568,*</item>
  </group>
  <group name="search">
   <item name="options">2032128</item>

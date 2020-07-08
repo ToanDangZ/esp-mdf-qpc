@@ -112,7 +112,7 @@ static QState test_TOP(test * const me, QEvt const * const e) {
             QS_END();
             #else
 
-            printf("CPU%d: AO_test Tick Event\n", cpuId);
+            //printf("CPU%d: AO_test Tick Event\n", cpuId);
             #endif
             status_ = Q_HANDLED();
             break;

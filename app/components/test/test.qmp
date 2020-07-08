@@ -22,7 +22,7 @@ QS_BEGIN(QS_USER0, &amp;me-&gt;super);
 QS_END();
 #else
 
-printf(&quot;CPU%d: AO_test Tick Event\n&quot;, cpuId);
+//printf(&quot;CPU%d: AO_test Tick Event\n&quot;, cpuId);
 #endif</action>
      <tran_glyph conn="8,22,3,-1,13">
       <action box="0,-2,10,2"/>
