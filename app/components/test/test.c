@@ -40,7 +40,7 @@ static QState test_TOP(test * const me, QEvt const * const e);
 /* Local Object */
 static test l_test;
 /* FreeRTOS stack for AO */
-static StackType_t testStack[1024];
+static StackType_t testStack[2048];
 /* AO Queue */
 QEvt const * l_testQSto[64];
 /* Global Oject: opaque pointer to test AO */
